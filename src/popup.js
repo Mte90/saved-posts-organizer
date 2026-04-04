@@ -87,42 +87,50 @@ function initView(category) {
   var folders = $("#folders");
   folders.empty();
 
-  var allPostsFolder = $("<div>");
-  allPostsFolder.addClass("folder");
-  allPostsFolder.attr("id","all");
-  allPostsFolder.text("All posts");
+  var userCategories = categories.filter(function(c) { return c !== "Uncategorized"; });
 
-  folders.append(allPostsFolder);
+  if (userCategories.length === 0) {
+    folders.hide();
+  } else {
+    folders.show();
 
-  for (var i = 0; i < Object.keys(categorizedPosts).length; i++) {
-    if (categorizedPosts[i] == undefined) {
-      continue;
+    var allPostsFolder = $("<div>");
+    allPostsFolder.addClass("folder");
+    allPostsFolder.attr("id","all");
+    allPostsFolder.text("All posts");
+
+    folders.append(allPostsFolder);
+
+    for (var i = 0; i < Object.keys(categorizedPosts).length; i++) {
+      if (categorizedPosts[i] == undefined) {
+        continue;
+      }
+      if (!categories.includes(categorizedPosts[i].category)) {
+        categorizedPosts[i].category = "Uncategorized";
+      }
     }
-    if (!categories.includes(categorizedPosts[i].category)) {
-      categorizedPosts[i].category = "Uncategorized";
+
+    for (var i = 0; i < categories.length; i++) {
+      var s = categories[i];
+
+      var categoryFolder = $("<div>");
+      categoryFolder.addClass("folder");
+      categoryFolder.attr("id",s);
+      categoryFolder.text(s);
+
+      folders.append(categoryFolder);
+
+      document.getElementById(s).addEventListener("click", function() {
+        currentPage = 0;
+        updateView(this.id);
+      });
     }
-  }
 
-  for (var i = 0; i < categories.length; i++) {
-    var s = categories[i];
-
-    var categoryFolder = $("<div>");
-    categoryFolder.addClass("folder");
-    categoryFolder.attr("id",s);
-    categoryFolder.text(s);
-
-    folders.append(categoryFolder);
-
-    document.getElementById(s).addEventListener("click", function() {
+    document.getElementById("all").addEventListener("click", function() {
       currentPage = 0;
-      updateView(this.id);
+      updateView("All posts");
     });
   }
-
-  document.getElementById("all").addEventListener("click", function() {
-    currentPage = 0;
-    updateView("All posts");
-  });
 
   updateDataFromMemory()
     .then(() => updateView(category));
