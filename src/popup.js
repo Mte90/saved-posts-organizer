@@ -82,7 +82,7 @@ function initView(category) {
   console.log(categorizedPosts);
 
   var cleanUsername = DOMPurify.sanitize(username);
-  $("#username").append(cleanUsername);
+  $("#username").text(cleanUsername ? "u/" + cleanUsername : "");
 
   var folders = $("#folders");
   folders.empty();
@@ -162,7 +162,7 @@ function updateView(category) {
   var cleanUsername = DOMPurify.sanitize(username);
   var cleanCategory = DOMPurify.sanitize(category);
 
-  $("#username").append(cleanUsername);
+  $("#username").text(cleanUsername ? "u/" + cleanUsername : "");
   $("#categoryTitle").append(cleanCategory);
 
   var deleteCategoryButton = document.getElementById('deleteCategory');
