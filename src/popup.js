@@ -248,6 +248,13 @@ function updateView(category) {
         row.addClass("row");
         row.addClass("editPost");
 
+        var removeIcon = $("<i>");
+        removeIcon.addClass("fas");
+        removeIcon.addClass("fa-trash-alt");
+        removeIcon.attr("id", id + "removebutton");
+        removeIcon.attr("data-post-id", id);
+        removeIcon.attr("title", "Remove from saved");
+
         var icon = $("<i>");
         icon.addClass("fas");
         icon.addClass("fa-folder-open");
@@ -259,6 +266,7 @@ function updateView(category) {
         post.attr("data-link", permalink);
         post.text(title + type);
 
+        row.append(removeIcon);
         row.append(icon);
         row.append(post);
 
@@ -273,6 +281,11 @@ function updateView(category) {
         //adds onclick listeners to editpost-button
         document.getElementById(categorizedPosts[i].id + "button").addEventListener("click", function() {
           editPostCategory(this.id.replace("button", ""));
+        });
+
+        //adds onclick listener to remove-button
+        document.getElementById(categorizedPosts[i].id + "removebutton").addEventListener("click", function() {
+          removePost(this.dataset.postId);
         });
       }
 
@@ -424,6 +437,22 @@ function movePost(id, category) {
   document.getElementById('movePostMenu').style.opacity = 0;
   document.getElementById('movePostMenu').style.visibility = "hidden";
 
+}
+
+function removePost(id) {
+  var newCategorizedPosts = {};
+  var j = 0;
+  for (var key in categorizedPosts) {
+    if (categorizedPosts[key] != undefined && categorizedPosts[key].id != id) {
+      newCategorizedPosts[j] = categorizedPosts[key];
+      j++;
+    }
+  }
+  categorizedPosts = newCategorizedPosts;
+
+  localStorage.setItem('categorizedPosts' + username, JSON.stringify(categorizedPosts));
+
+  updateView(lastClickedCategory);
 }
 
 function addFolder() {
