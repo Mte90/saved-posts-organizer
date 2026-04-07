@@ -82,47 +82,55 @@ function initView(category) {
   console.log(categorizedPosts);
 
   var cleanUsername = DOMPurify.sanitize(username);
-  $("#username").append(cleanUsername);
+  $("#username").text(cleanUsername ? "u/" + cleanUsername : "");
 
   var folders = $("#folders");
   folders.empty();
 
-  var allPostsFolder = $("<div>");
-  allPostsFolder.addClass("folder");
-  allPostsFolder.attr("id","all");
-  allPostsFolder.text("All posts");
+  var userCategories = categories.filter(function(c) { return c !== "Uncategorized"; });
 
-  folders.append(allPostsFolder);
+  if (userCategories.length === 0) {
+    folders.hide();
+  } else {
+    folders.show();
 
-  for (var i = 0; i < Object.keys(categorizedPosts).length; i++) {
-    if (categorizedPosts[i] == undefined) {
-      continue;
+    var allPostsFolder = $("<div>");
+    allPostsFolder.addClass("folder");
+    allPostsFolder.attr("id","all");
+    allPostsFolder.text("All posts");
+
+    folders.append(allPostsFolder);
+
+    for (var i = 0; i < Object.keys(categorizedPosts).length; i++) {
+      if (categorizedPosts[i] == undefined) {
+        continue;
+      }
+      if (!categories.includes(categorizedPosts[i].category)) {
+        categorizedPosts[i].category = "Uncategorized";
+      }
     }
-    if (!categories.includes(categorizedPosts[i].category)) {
-      categorizedPosts[i].category = "Uncategorized";
+
+    for (var i = 0; i < categories.length; i++) {
+      var s = categories[i];
+
+      var categoryFolder = $("<div>");
+      categoryFolder.addClass("folder");
+      categoryFolder.attr("id",s);
+      categoryFolder.text(s);
+
+      folders.append(categoryFolder);
+
+      document.getElementById(s).addEventListener("click", function() {
+        currentPage = 0;
+        updateView(this.id);
+      });
     }
-  }
 
-  for (var i = 0; i < categories.length; i++) {
-    var s = categories[i];
-
-    var categoryFolder = $("<div>");
-    categoryFolder.addClass("folder");
-    categoryFolder.attr("id",s);
-    categoryFolder.text(s);
-
-    folders.append(categoryFolder);
-
-    document.getElementById(s).addEventListener("click", function() {
+    document.getElementById("all").addEventListener("click", function() {
       currentPage = 0;
-      updateView(this.id);
+      updateView("All posts");
     });
   }
-
-  document.getElementById("all").addEventListener("click", function() {
-    currentPage = 0;
-    updateView("All posts");
-  });
 
   updateDataFromMemory()
     .then(() => updateView(category));
@@ -162,7 +170,7 @@ function updateView(category) {
   var cleanUsername = DOMPurify.sanitize(username);
   var cleanCategory = DOMPurify.sanitize(category);
 
-  $("#username").append(cleanUsername);
+  $("#username").text(cleanUsername ? "u/" + cleanUsername : "");
   $("#categoryTitle").append(cleanCategory);
 
   var deleteCategoryButton = document.getElementById('deleteCategory');
@@ -248,6 +256,13 @@ function updateView(category) {
         row.addClass("row");
         row.addClass("editPost");
 
+        var removeIcon = $("<i>");
+        removeIcon.addClass("fas");
+        removeIcon.addClass("fa-trash-alt");
+        removeIcon.attr("id", id + "removebutton");
+        removeIcon.attr("data-post-id", id);
+        removeIcon.attr("title", "Remove from saved");
+
         var icon = $("<i>");
         icon.addClass("fas");
         icon.addClass("fa-folder-open");
@@ -259,6 +274,7 @@ function updateView(category) {
         post.attr("data-link", permalink);
         post.text(title + type);
 
+        row.append(removeIcon);
         row.append(icon);
         row.append(post);
 
@@ -273,6 +289,11 @@ function updateView(category) {
         //adds onclick listeners to editpost-button
         document.getElementById(categorizedPosts[i].id + "button").addEventListener("click", function() {
           editPostCategory(this.id.replace("button", ""));
+        });
+
+        //adds onclick listener to remove-button
+        document.getElementById(categorizedPosts[i].id + "removebutton").addEventListener("click", function() {
+          removePost(this.dataset.postId);
         });
       }
 
@@ -424,6 +445,22 @@ function movePost(id, category) {
   document.getElementById('movePostMenu').style.opacity = 0;
   document.getElementById('movePostMenu').style.visibility = "hidden";
 
+}
+
+function removePost(id) {
+  var newCategorizedPosts = {};
+  var j = 0;
+  for (var key in categorizedPosts) {
+    if (categorizedPosts[key] != undefined && categorizedPosts[key].id != id) {
+      newCategorizedPosts[j] = categorizedPosts[key];
+      j++;
+    }
+  }
+  categorizedPosts = newCategorizedPosts;
+
+  localStorage.setItem('categorizedPosts' + username, JSON.stringify(categorizedPosts));
+
+  updateView(lastClickedCategory);
 }
 
 function addFolder() {
